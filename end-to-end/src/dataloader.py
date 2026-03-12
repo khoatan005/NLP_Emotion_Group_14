@@ -254,16 +254,20 @@ def compute_pos_weight(
     tier_indices:       Dict[str, List[int]],
 ) -> torch.Tensor:
     n            = len(dataset)
-    label_counts = dataset.labels_7.sum(axis=0).clip(min=1)
-    scale_map    = np.ones(NUM_CLASSES, dtype=np.float32)
+    label_counts = dataset.labels_7.sum(axis=0).clip(min=1)  # tránh /0
+    neg_counts   = np.maximum(n - label_counts, 1.0)          # tránh âm
+
+    scale_map = np.ones(NUM_CLASSES, dtype=np.float32)
     for idx in tier_indices.get("very_rare", []):
         scale_map[idx] = pw_scale_very_rare
     for idx in tier_indices.get("rare", []):
         scale_map[idx] = pw_scale_rare
     for idx in tier_indices.get("common", []):
         scale_map[idx] = pw_scale_common
-    pw = ((n - label_counts) / label_counts) * scale_map
+
+    pw = (neg_counts / label_counts) * scale_map  # ✅ * thay vì **
     return torch.tensor(pw, dtype=torch.float32, device=device)
+    
 
 
 # =============================================================================
