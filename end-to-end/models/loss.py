@@ -72,7 +72,7 @@ class AsymmetricLoss(nn.Module):
 
     def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
         p    = torch.sigmoid(logits)
-        pn   = (p - self.clip).clamp(min=0.0) if self.clip > 0 else p
+        pn   = (p - self.clip).clamp(min=0.0, max=1.0) if self.clip > 0 else p
         lp   = targets       * torch.log(p.clamp(min=1e-8))
         ln   = (1 - targets) * torch.log((1 - pn).clamp(min=1e-8))
         if self.gamma_pos > 0: lp = ((1 - p)  ** self.gamma_pos) * lp
@@ -132,7 +132,7 @@ class TieredPerClassASL(nn.Module):
 
     def _asl_col(self, p: torch.Tensor, t: torch.Tensor,
                   gp: float, gn: float, clip: float) -> torch.Tensor:
-        pn  = (p - clip).clamp(min=0.0) if clip > 0 else p
+        pn  = (p - clip).clamp(min=0.0, max=1.0) if clip > 0 else p
         lp  = t       * torch.log(p.clamp(min=1e-8))
         ln  = (1 - t) * torch.log((1 - pn).clamp(min=1e-8))
         if gp > 0: lp = ((1 - p) ** gp) * lp
