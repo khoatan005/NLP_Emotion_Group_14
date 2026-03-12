@@ -509,6 +509,7 @@ def get_dataloaders(
         train_loader = DataLoader(
             train_ds, batch_size=batch_size, sampler=sampler,
             num_workers=num_workers, pin_memory=True,
+            persistent_workers=(num_workers > 0),
         )
     else:
         train_loader = DataLoader(
